@@ -1,4 +1,10 @@
-param([string]$buildType="Debug", [string]$dotnetDir="c:\Program Files\dotnet", [string]$root=$PSScriptRoot, [string]$failBuildOnTest="YES")
+param(
+    [string]$buildType="Debug",
+    [string]$dotnetDir="c:\Program Files\dotnet",
+    [string]$root=$PSScriptRoot,
+    [string]$failBuildOnTest="YES",
+    [string]$testFilter="FullyQualifiedName=Microsoft.IdentityModel.Tokens.Tests.TamperingTests.JWSTampering",
+    [string]$testLevel="n")
 
 ################################################# Functions ############################################################
 
@@ -37,22 +43,20 @@ $startTime = Get-Date
 Write-Host "Start Time:     " $startTime
 Write-Host "PSScriptRoot:   " $PSScriptRoot;
 Write-Host "dotnetexe:      " $dotnetexe;
+WriteSectionHeader("Test");
 
 $ErrorActionPreference = "Stop"
-
 $testProjects = $buildConfiguration.SelectNodes("root/projects/test/project")
 foreach ($testProject in $testProjects)
 {
     if ($testProject.test -eq "YES")
     {
-        WriteSectionHeader("Test");
-
         $name = $testProject.name;
         Write-Host ">>> Set-Location $root\test\$name"
         pushd
         Set-Location $root\test\$name
-        Write-Host ">>> Start-Process -wait -passthru -NoNewWindow $dotnetexe 'test $name.csproj' --filter category!=nonwindowstests --no-build --no-restore -v q -c $buildType"
-        $p = Start-Process -wait -passthru -NoNewWindow $dotnetexe "test $name.csproj --filter category!=nonwindowstests --no-build --no-restore -v q -c $buildType"
+        Write-Host ">>> Start-Process -wait -passthru -NoNewWindow $dotnetexe 'test $name.csproj' --filter $testFilter --no-build --no-restore -v $testLevel -c $buildType"
+        $p = Start-Process -wait -passthru -NoNewWindow $dotnetexe "test $name.csproj --filter $testFilter --no-build --no-restore -v $testLevel -c $buildType"
 
         if($p.ExitCode -ne 0)
         {
@@ -68,10 +72,10 @@ foreach ($testProject in $testProjects)
         $testExitCode = $p.ExitCode + $testExitCode
 
         popd
-
-        WriteSectionFooter("End Test");
     }
 }
+
+WriteSectionFooter("End Test");
 
 if($testExitCode -ne 0)
 {

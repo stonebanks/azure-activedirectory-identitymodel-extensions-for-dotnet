@@ -33,6 +33,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.TestUtils;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Json.Linq;
+using Microsoft.IdentityModel.Tokens.References;
 using Xunit;
 using TokenLogMessages = Microsoft.IdentityModel.Tokens.LogMessages;
 

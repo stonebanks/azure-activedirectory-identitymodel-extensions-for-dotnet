@@ -6,6 +6,8 @@ param(
     [string]$runTests="YES",
     [string]$failBuildOnTest="YES",
     [string]$slnFile="wilson.sln",
+    [string]$testFilter="category!=nonwindowstests",
+    [string]$testLevel="n",
     [switch]$runApiCompat,
     [switch]$generateContractAssemblies)
 
@@ -180,8 +182,8 @@ if ($runTests -eq "YES")
             Write-Host ">>> Set-Location $root\test\$name"
             pushd
             Set-Location $root\test\$name
-            Write-Host ">>> Start-Process -Wait -PassThru -NoNewWindow $dotnetexe 'test $name.csproj' --filter category!=nonwindowstests --no-build --no-restore -nodereuse:false -v n -c $buildType"
-            $p = Start-Process -Wait -PassThru -NoNewWindow $dotnetexe "test $name.csproj --filter category!=nonwindowstests --no-build --no-restore -nodereuse:false -v n -c $buildType"
+            Write-Host ">>> Start-Process -Wait -PassThru -NoNewWindow $dotnetexe 'test $name.csproj' --filter $testFilter --no-build --no-restore -nodereuse:false -v $testLevel -c $buildType"
+            $p = Start-Process -Wait -PassThru -NoNewWindow $dotnetexe "test $name.csproj --filter $testFilter --no-build --no-restore -nodereuse:false -v $testLevel -c $buildType"
 
             if($p.ExitCode -ne 0)
             {

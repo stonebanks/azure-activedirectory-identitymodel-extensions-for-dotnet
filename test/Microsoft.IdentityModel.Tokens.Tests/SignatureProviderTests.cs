@@ -296,7 +296,7 @@ namespace Microsoft.IdentityModel.Tokens.Tests
                 new SignatureProviderTheoryData("SymmetricSecurityKey10", ALG.RsaSha256Signature, ALG.RsaSha512Signature, KEY.SymmetricSecurityKey2_256, KEY.SymmetricSecurityKey2_256, EE.NotSupportedException("IDX10634:")),
                 new SignatureProviderTheoryData("SymmetricSecurityKey11", ALG.HmacSha256Signature, ALG.HmacSha256Signature, KEY.DefaultSymmetricSecurityKey_256, KEY.DefaultSymmetricSecurityKey_256),
                 new SignatureProviderTheoryData("SymmetricSecurityKey12",
-                                                ALG.HmacSha256Signature, 
+                                                ALG.HmacSha256Signature,
                                                 ALG.HmacSha256Signature,
                                                 new FaultingSymmetricSecurityKey(Default.SymmetricSigningKey256, new CryptographicException("Inner CryptographicException"), null, null, Default.SymmetricSigningKey256.Key),
                                                 KEY.SymmetricSecurityKey2_256,
@@ -372,7 +372,7 @@ namespace Microsoft.IdentityModel.Tokens.Tests
 
                 expectedException.ProcessNoException();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 expectedException.ProcessException(ex);
             }
@@ -665,7 +665,7 @@ namespace Microsoft.IdentityModel.Tokens.Tests
 
                 ee.ProcessNoException();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ee.ProcessException(ex);
             }
@@ -738,108 +738,6 @@ namespace Microsoft.IdentityModel.Tokens.Tests
                     EE.NoExceptionExpected
                 }
             };
-
-            return theoryData;
-        }
-#if NET_CORE
-        // Excluding OSX as SignatureTampering test is slow on OSX (~6 minutes)
-        // especially tests with IDs RS256 and ES256
-        [PlatformSpecific(TestPlatforms.Windows | TestPlatforms.Linux)]
-#endif
-        [Theory, MemberData(nameof(SignatureTheoryData))]
-        public void SignatureTampering(SignatureProviderTheoryData theoryData)
-        {
-            TestUtilities.WriteHeader($"{this}.SignatureTampering", theoryData);
-            var copiedSignature = theoryData.Signature.CloneByteArray();
-            for (int i = 0; i < theoryData.Signature.Length; i++)
-            {
-                var originalB = theoryData.Signature[i];
-                for (byte b = 0; b < byte.MaxValue; b++)
-                {
-                    // skip here as this will succeed
-                    if (b == theoryData.Signature[i])
-                        continue;
-
-                    copiedSignature[i] = b;
-                    Assert.False(theoryData.VerifySignatureProvider.Verify(theoryData.RawBytes, copiedSignature), $"signature should not have verified: {theoryData.TestId} : {i} : {b} : {copiedSignature[i]}");
-
-                    // reset so we move to next byte
-                    copiedSignature[i] = originalB;
-                }
-            }
-
-            Assert.True(theoryData.VerifySignatureProvider.Verify(theoryData.RawBytes, copiedSignature), "Final check should have verified");
-        }
-
-#if NET_CORE
-        // Excluding OSX as SignatureTruncation test throws an exception only on OSX
-        // This behavior should be fixed with netcore3.0
-        // Exceptions is thrown somewhere in System/Security/Cryptography/DerEncoder.cs class which is removed in netcore3.0
-        [PlatformSpecific(TestPlatforms.Windows | TestPlatforms.Linux)]
-#endif
-        [Theory, MemberData(nameof(SignatureTheoryData))]
-        public void SignatureTruncation(SignatureProviderTheoryData theoryData)
-        {
-            TestUtilities.WriteHeader($"{this}.SignatureTruncation", theoryData);
-            for (int i = 0; i < theoryData.Signature.Length - 1; i++)
-            {
-                var truncatedSignature = new byte[i + 1];
-                Array.Copy(theoryData.Signature, truncatedSignature, i + 1);
-                Assert.False(theoryData.VerifySignatureProvider.Verify(theoryData.RawBytes, truncatedSignature), $"signature should not have verified: {theoryData.TestId} : {i}");
-            }
-
-            Assert.True(theoryData.VerifySignatureProvider.Verify(theoryData.RawBytes, theoryData.Signature), "Final check should have verified");
-        }
-
-        public static TheoryData<SignatureProviderTheoryData> SignatureTheoryData()
-        {
-            var theoryData = new TheoryData<SignatureProviderTheoryData>();
-
-            var rawBytes = Guid.NewGuid().ToByteArray();
-            var asymmetricProvider = new AsymmetricSignatureProvider(KEY.DefaultX509Key_2048, ALG.RsaSha256, true);
-            theoryData.Add(new SignatureProviderTheoryData
-            {
-                First = true,
-                RawBytes = rawBytes,
-                Signature = asymmetricProvider.Sign(rawBytes),
-                TestId = ALG.RsaSha256,
-                VerifyKey = KEY.DefaultX509Key_2048,
-                VerifyAlgorithm = ALG.RsaSha256,
-                VerifySignatureProvider = asymmetricProvider
-            });
-
-            var asymmetricProvider2 = new AsymmetricSignatureProvider(KEY.Ecdsa256Key, ALG.EcdsaSha256, true);
-            theoryData.Add(new SignatureProviderTheoryData
-            {
-                RawBytes = rawBytes,
-                Signature = asymmetricProvider2.Sign(rawBytes),
-                TestId = ALG.EcdsaSha256,
-                VerifyKey = KEY.Ecdsa256Key,
-                VerifyAlgorithm = ALG.EcdsaSha256,
-                VerifySignatureProvider = asymmetricProvider2
-            });
-
-            var symmetricProvider = new SymmetricSignatureProvider(KEY.SymmetricSecurityKey2_256, ALG.HmacSha256);
-            theoryData.Add(new SignatureProviderTheoryData
-            {
-                RawBytes = rawBytes,
-                Signature = symmetricProvider.Sign(rawBytes),
-                TestId = ALG.HmacSha256,
-                VerifyKey = KEY.SymmetricSecurityKey2_256,
-                VerifyAlgorithm = ALG.HmacSha256,
-                VerifySignatureProvider = symmetricProvider,
-            });
-
-            var symmetricProvider2 = new SymmetricSignatureProvider(KEY.SymmetricSecurityKey2_512, ALG.HmacSha512);
-            theoryData.Add(new SignatureProviderTheoryData
-            {
-                RawBytes = rawBytes,
-                Signature = symmetricProvider2.Sign(rawBytes),
-                TestId = ALG.HmacSha512,
-                VerifyKey = KEY.SymmetricSecurityKey2_512,
-                VerifyAlgorithm = ALG.HmacSha512,
-                VerifySignatureProvider = symmetricProvider2
-            });
 
             return theoryData;
         }

@@ -64,6 +64,87 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         };
 
         /// <summary>
+        /// Creates a dictionary from a list of Claim's.
+        /// </summary>
+        /// <param name="claims"> A list of claims.</param>
+        /// <returns> A Dictionary representing claims.</returns>
+        internal static IDictionary<string, object> CreateDictionaryFromClaims(IEnumerable<Claim> claims)
+        {
+            var payload = new Dictionary<string, object>();
+
+            if (claims == null)
+                return payload;
+
+            foreach (Claim claim in claims)
+            {
+                if (claim == null)
+                    continue;
+
+                string jsonClaimType = claim.Type;
+                object jsonClaimValue = claim.ValueType.Equals(ClaimValueTypes.String, StringComparison.Ordinal) ? claim.Value : GetClaimValueUsingValueType(claim);
+                object existingValue;
+
+                // If there is an existing value, append to it.
+                // What to do if the 'ClaimValueType' is not the same.
+                if (payload.TryGetValue(jsonClaimType, out existingValue))
+                {
+                    IList<object> claimValues = existingValue as IList<object>;
+                    if (claimValues == null)
+                    {
+                        claimValues = new List<object>();
+                        claimValues.Add(existingValue);
+                        payload[jsonClaimType] = claimValues;
+                    }
+
+                    claimValues.Add(jsonClaimValue);
+                }
+                else
+                {
+                    payload[jsonClaimType] = jsonClaimValue;
+                }
+            }
+
+            return payload;
+        }
+
+        /// <summary>
+        /// Produces a signed json (JWS) in compact format
+        /// see: https://tools.ietf.org/html/rfc7515.
+        /// </summary>
+        /// <param name="header">protected header as a UTF8 string.</param>
+        /// <param name="payload">payload as a UTF8 string.</param>
+        /// <param name="signingCredentials">The <see cref="SigningCredentials"/> that contain crypto specs used to sign the token.</param>
+        /// <returns>The bse64urlendcoded signature over the bytes obtained from UTF8Encoding.GetBytes( 'input' ).</returns>
+        /// <exception cref="ArgumentNullException">'input' or 'signingCredentials' is null.</exception>
+        internal static string CreateCompactJWS(string header, string payload, SigningCredentials signingCredentials)
+        {
+            if (string.IsNullOrEmpty(header))
+                throw LogHelper.LogArgumentNullException(nameof(header));
+
+            if (string.IsNullOrEmpty(payload))
+                throw LogHelper.LogArgumentNullException(nameof(payload));
+
+            if (signingCredentials == null)
+                return Base64UrlEncoder.Encode(header) + "." + Base64UrlEncoder.Encode(payload) + ".";
+
+            var cryptoProviderFactory = signingCredentials.CryptoProviderFactory ?? signingCredentials.Key.CryptoProviderFactory;
+            var signatureProvider = cryptoProviderFactory.CreateForSigning(signingCredentials.Key, signingCredentials.Algorithm);
+            if (signatureProvider == null)
+                throw LogHelper.LogExceptionMessage(new InvalidOperationException(LogHelper.FormatInvariant(TokenLogMessages.IDX10637, signingCredentials.Key == null ? "Null" : signingCredentials.Key.ToString(), signingCredentials.Algorithm ?? "Null")));
+
+            try
+            {
+                LogHelper.LogVerbose(LogMessages.IDX14200);
+                var message = Base64UrlEncoder.Encode(header) + "." + Base64UrlEncoder.Encode(payload);
+                return message + "." + Base64UrlEncoder.Encode(signatureProvider.Sign(Encoding.ASCII.GetBytes(message)));
+            }
+            finally
+            {
+                cryptoProviderFactory.ReleaseSignatureProvider(signatureProvider);
+            }
+        }
+
+        /// <summary>
         /// Produces a signature over the 'input'.
         /// </summary>
         /// <param name="input">String to be signed</param>
@@ -86,7 +167,7 @@ namespace Microsoft.IdentityModel.JsonWebTokens
             try
             {
                 LogHelper.LogVerbose(LogMessages.IDX14200);
-                return Base64UrlEncoder.Encode(signatureProvider.Sign(Encoding.UTF8.GetBytes(input)));
+                return Base64UrlEncoder.Encode(signatureProvider.Sign(Encoding.ASCII.GetBytes(input)));
             }
             finally
             {
@@ -118,7 +199,7 @@ namespace Microsoft.IdentityModel.JsonWebTokens
             try
             {
                 LogHelper.LogVerbose(LogHelper.FormatInvariant(LogMessages.IDX14201, cacheProvider));
-                return Base64UrlEncoder.Encode(signatureProvider.Sign(Encoding.UTF8.GetBytes(input)));
+                return Base64UrlEncoder.Encode(signatureProvider.Sign(Encoding.ASCII.GetBytes(input)));
             }
             finally
             {

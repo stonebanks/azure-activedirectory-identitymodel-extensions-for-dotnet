@@ -25,15 +25,53 @@
 //
 //------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Json;
 using Microsoft.IdentityModel.TestUtils;
-using Microsoft.IdentityModel.Tokens;
 
-namespace System.IdentityModel.Tokens.Jwt.Tests
+namespace Microsoft.IdentityModel.Tokens.References
 {
+    /// <summary>
+    /// references from https://tools.ietf.org/html/rfc7515
+    /// </summary>
+    public static class RFC7515
+    {
+        #region A.1.1 Encoding
+
+        public static class SymetricKeyHMACSHA2
+        {
+            public static string EncodedHeader => "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9";
+
+            public static string EncodedPayload => "eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ";
+
+            public static string EncodedSignature => "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+
+            public static string EncodedToken => "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+
+            public static string Header => "{\"typ\":\"JWT\",\r\n \"alg\":\"HS256\"}";
+
+            public static byte[] HeaderOctets => new byte[] { 123, 34, 116, 121, 112, 34, 58, 34, 74, 87, 84, 34, 44, 13, 10, 32, 34, 97, 108, 103, 34, 58, 34, 72, 83, 50, 53, 54, 34, 125 };
+
+            public static string HMACKeyJson => @"{""kty"":""oct"",""k"":""AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow""}";
+
+            public static byte[] HMACSha2Octects => new byte[] { 116, 24, 223, 180, 151, 153, 224, 37, 79, 250, 96, 125, 216, 173, 187, 186, 22, 212, 37, 77, 105, 214, 191, 240, 91, 88, 5, 88, 83, 132, 141, 121 };
+
+            public static string Payload => "{\"iss\":\"joe\",\r\n \"exp\":1300819380,\r\n \"http://example.com/is_root\":true}";
+
+            public static byte[] PayloadOctets => new byte[] { 123, 34, 105, 115, 115, 34, 58, 34, 106, 111, 101, 34, 44, 13, 10, 32, 34, 101, 120, 112, 34, 58, 49, 51, 48, 48, 56, 49, 57, 51, 56, 48, 44, 13, 10, 32, 34, 104, 116, 116, 112, 58, 47, 47, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 105, 115, 95, 114, 111, 111, 116, 34, 58, 116, 114, 117, 101, 125 };
+
+            public static byte[] SignatureOctects => new byte[] { 101, 121, 74, 48, 101, 88, 65, 105, 79, 105, 74, 75, 86, 49, 81, 105, 76, 65, 48, 75, 73, 67, 74, 104, 98, 71, 99, 105, 79, 105, 74, 73, 85, 122, 73, 49, 78, 105, 74, 57, 46, 101, 121, 74, 112, 99, 51, 77, 105, 79, 105, 74, 113, 98, 50, 85, 105, 76, 65, 48, 75, 73, 67, 74, 108, 101, 72, 65, 105, 79, 106, 69, 122, 77, 68, 65, 52, 77, 84, 107, 122, 79, 68, 65, 115, 68, 81, 111, 103, 73, 109, 104, 48, 100, 72, 65, 54, 76, 121, 57, 108, 101, 71, 70, 116, 99, 71, 120, 108, 76, 109, 78, 118, 98, 83, 57, 112, 99, 49, 57, 121, 98, 50, 57, 48, 73, 106, 112, 48, 99, 110, 86, 108, 102, 81 };
+
+            public static SigningCredentials SigningCredentials => new SigningCredentials(new JsonWebKey(HMACKeyJson), SecurityAlgorithms.HmacSha256);
+        }
+
+        #endregion
+    }
+
     /// <summary>
     /// references from https://tools.ietf.org/html/rfc7520
     /// </summary>
@@ -272,6 +310,8 @@ namespace System.IdentityModel.Tokens.Jwt.Tests
 
         #endregion Keys
 
+        #region 4.1.2
+
         // 4.  JSON Web Signature Examples
         // https://tools.ietf.org/html/rfc7520#section-4
         public static string Payload
@@ -285,8 +325,6 @@ namespace System.IdentityModel.Tokens.Jwt.Tests
         {
             get { return "SXTigJlzIGEgZGFuZ2Vyb3VzIGJ1c2luZXNzLCBGcm9kbywgZ29pbmcgb3V0IHlvdXIgZG9vci4gWW91IHN0ZXAgb250byB0aGUgcm9hZCwgYW5kIGlmIHlvdSBkb24ndCBrZWVwIHlvdXIgZmVldCwgdGhlcmXigJlzIG5vIGtub3dpbmcgd2hlcmUgeW91IG1pZ2h0IGJlIHN3ZXB0IG9mZiB0by4"; }
         }
-
-        #region 4.1.2
 
         // 4.1.2.  Signing Operation
         // https://tools.ietf.org/html/rfc7520#section-4.1.2

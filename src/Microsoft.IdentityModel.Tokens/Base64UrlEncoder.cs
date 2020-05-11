@@ -32,7 +32,12 @@ using Microsoft.IdentityModel.Logging;
 namespace Microsoft.IdentityModel.Tokens
 {
     /// <summary>
-    /// Encodes and Decodes strings as Base64Url encoding.
+    /// Encodes and Decodes strings using Base64Url encoding.
+    /// see: https://tools.ietf.org/html/rfc4648#page-7
+    /// base64url encoding extends and is slightly different from base64 encoding:
+    /// * padding is skipped so the pad character '=' doesn't have to be percent encoded
+    /// * the 62nd and 63rd regular base64 encoding characters ('+' and '/') are replace with ('-' and '_')
+    /// These changes make work better with http messages and are considered URL safe.
     /// </summary>
     public static class Base64UrlEncoder
     {
@@ -44,35 +49,43 @@ namespace Microsoft.IdentityModel.Tokens
         private static char _base64UrlCharacter63 = '_';
 
         /// <summary>
-        /// The following functions perform base64url encoding which differs from regular base64 encoding as follows
-        /// * padding is skipped so the pad character '=' doesn't have to be percent encoded
-        /// * the 62nd and 63rd regular base64 encoding characters ('+' and '/') are replace with ('-' and '_')
-        /// The changes make the encoding alphabet file and URL safe.
+        /// Encodes a string using Base64Url encoding.
         /// </summary>
         /// <param name="arg">string to encode.</param>
-        /// <returns>Base64Url encoding of the UTF8 bytes.</returns>
+        /// <returns>Base64Url encoded string</returns>
+        /// <remarks>Assumes UTF8 encoding of string.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="arg"/> is null.</exception>
         public static string Encode(string arg)
         {
             if (arg == null)
-                throw LogHelper.LogArgumentNullException("arg");
+                throw LogHelper.LogArgumentNullException(nameof(arg));
 
             return Encode(Encoding.UTF8.GetBytes(arg));
         }
 
         /// <summary>
-        /// Converts a subset of an array of 8-bit unsigned integers to its equivalent string representation that is encoded with base-64-url digits. Parameters specify
-        /// the subset as an offset in the input array, and the number of elements in the array to convert.
+        /// Converts a subset of a byte array to a Base64Url encoded string.digits.
         /// </summary>
-        /// <param name="inArray">An array of 8-bit unsigned integers.</param>
-        /// <param name="length">An offset in inArray.</param>
+        /// <param name="inArray">Bytes to encode.</param>
+        /// <param name="length">Offset in inArray.</param>
         /// <param name="offset">The number of elements of inArray to convert.</param>
-        /// <returns>The string representation in base 64 url encodingof length elements of inArray, starting at position offset.</returns>
+        /// <returns>A string encoded as Base64Url starting from <paramref name="offset"/> of length <paramref name="length"/>.</returns>
         /// <exception cref="ArgumentNullException">'inArray' is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">offset or length is negative OR offset plus length is greater than the length of inArray.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">offset or length is negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">offset plus length is greater than the length of inArray.</exception>
         public static string Encode(byte[] inArray, int offset, int length)
         {
             if (inArray == null)
-                throw LogHelper.LogArgumentNullException("inArray");
+                throw LogHelper.LogArgumentNullException(nameof(inArray));
+
+            if (offset < 0)
+                throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10402, offset)));
+
+            if (length < 0)
+                throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10403, length)));
+
+            if (offset + length > inArray.Length)
+                throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10404, offset, length, inArray.Length)));
 
             string s = Convert.ToBase64String(inArray, offset, length);
             s = s.Split(base64PadCharacter)[0]; // Remove any trailing padding
@@ -82,17 +95,15 @@ namespace Microsoft.IdentityModel.Tokens
         }
 
         /// <summary>
-        /// Converts a subset of an array of 8-bit unsigned integers to its equivalent string representation that is encoded with base-64-url digits. Parameters specify
-        /// the subset as an offset in the input array, and the number of elements in the array to convert.
+        /// Converts a byte array to a Base64Url encoded string.
         /// </summary>
-        /// <param name="inArray">An array of 8-bit unsigned integers.</param>
-        /// <returns>The string representation in base 64 url encodingof length elements of inArray, starting at position offset.</returns>
+        /// <param name="inArray">bytes to encode.</param>
+        /// <returns>A string encoded as Base64Url.</returns>
         /// <exception cref="ArgumentNullException">'inArray' is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">offset or length is negative OR offset plus length is greater than the length of inArray.</exception>
         public static string Encode(byte[] inArray)
         {
             if (inArray == null)
-                throw LogHelper.LogArgumentNullException("inArray");
+                throw LogHelper.LogArgumentNullException(nameof(inArray));
 
             string s = Convert.ToBase64String(inArray, 0, inArray.Length);
             s = s.Split(base64PadCharacter)[0]; // Remove any trailing padding
@@ -103,9 +114,12 @@ namespace Microsoft.IdentityModel.Tokens
         }
 
         /// <summary>
-        ///  Converts the specified string, which encodes binary data as base-64-url digits, to an equivalent 8-bit unsigned integer array.</summary>
-        /// <param name="str">base64Url encoded string.</param>
-        /// <returns>UTF8 bytes.</returns>
+        /// Decodes the specified string, encoded using Base64Url to bytes.
+        /// </summary>
+        /// <param name="str">Base64Url encoded string.</param>
+        /// <returns>Original bytes used to create the string.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="str"/> is null.</exception>
+        /// <exception cref="FormatException">if str.length mod 4 == 1, which indicates invalid string size as padding is implied..</exception>
         public static byte[] DecodeBytes(string str)
         {
             if (str == null)
@@ -115,7 +129,7 @@ namespace Microsoft.IdentityModel.Tokens
 
             // 62nd char of encoding
             str = str.Replace(base64UrlCharacter62, base64Character62);
-            
+
             // 63rd char of encoding
             str = str.Replace(_base64UrlCharacter63, base64Character63);
 
@@ -141,10 +155,47 @@ namespace Microsoft.IdentityModel.Tokens
         }
 
         /// <summary>
+        ///  Converts the specified base64Url encoded string to the base64 string including padding.</summary>
+        /// <param name="str">base64-url-encoded string.</param>
+        /// <returns>base64 string.</returns>
+        internal static string GetBase64String(string str)
+        {
+            // 62nd char of encoding
+            var base64Str = str.Replace(base64UrlCharacter62, base64Character62);
+
+            // 63rd char of encoding
+            base64Str = base64Str.Replace(_base64UrlCharacter63, base64Character63);
+
+            // check for padding
+            switch (str.Length % 4)
+            {
+                case 0:
+                    // No pad chars in this case
+                    break;
+
+                case 2:
+                    // Two pad chars
+                    base64Str += doubleBase64PadCharacter;
+                    break;
+
+                case 3:
+                    // One pad char
+                    base64Str += base64PadCharacter;
+                    break;
+
+                default:
+                    throw LogHelper.LogExceptionMessage(new FormatException(LogHelper.FormatInvariant(LogMessages.IDX10400, str)));
+            }
+
+            return base64Str;
+        }
+
+        /// <summary>
         /// Decodes the string from Base64UrlEncoded to UTF8.
         /// </summary>
         /// <param name="arg">string to decode.</param>
         /// <returns>UTF8 string.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="arg"/> is null.</exception>
         public static string Decode(string arg)
         {
             return Encoding.UTF8.GetString(DecodeBytes(arg));

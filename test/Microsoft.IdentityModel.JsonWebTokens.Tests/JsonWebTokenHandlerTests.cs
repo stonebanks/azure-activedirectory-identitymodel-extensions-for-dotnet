@@ -322,7 +322,8 @@ namespace Microsoft.IdentityModel.JsonWebTokens.Tests
                             TokenDecryptionKey = KeyingMaterial.DefaultSymmetricSecurityKey_512,
                             ValidAudience = Default.Audience,
                             ValidIssuer = Default.Issuer
-                        }
+                        },
+                        TestId = "Test1"
                     },
                     new CreateTokenTheoryData
                     {
@@ -342,7 +343,8 @@ namespace Microsoft.IdentityModel.JsonWebTokens.Tests
                             TokenDecryptionKey = KeyingMaterial.DefaultSymmetricSecurityKey_512,
                             ValidAudience = Default.Audience,
                             ValidIssuer = Default.Issuer
-                        }
+                        },
+                        TestId = "Test2"
                     }
                 };
             }

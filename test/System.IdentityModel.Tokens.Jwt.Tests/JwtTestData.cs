@@ -27,6 +27,7 @@
 
 using Microsoft.IdentityModel.Json;
 using Microsoft.IdentityModel.TestUtils;
+using Microsoft.IdentityModel.Tokens.References;
 using Xunit;
 
 namespace System.IdentityModel.Tokens.Jwt.Tests

@@ -131,9 +131,12 @@ namespace Microsoft.IdentityModel.Tokens
         public const string IDX10619 = "IDX10619: Decryption failed. Algorithm: '{0}'. Either the Encryption Algorithm: '{1}' or none of the Security Keys are supported by the CryptoProviderFactory.";
         public const string IDX10620 = "IDX10620: Unable to obtain a CryptoProviderFactory, both EncryptingCredentials.CryptoProviderFactory and EncryptingCredentials.Key.CrypoProviderFactory are null.";
 
-        // Formating
+        // Formating - Base64urlEncoding
         public const string IDX10400 = "IDX10400: Unable to decode: '{0}' as Base64url encoded string.";
         public const string IDX10401 = "IDX10401: Invalid requested key size. Valid key sizes are: 256, 384, and 512.";
+        public const string IDX10402 = "IDX10402: 'offset' cannot be negative: offset: '{0}'.";
+        public const string IDX10403 = "IDX10403: 'offset' cannot be negative: offset: '{0}'.";
+        public const string IDX10404 = "IDX10404: 'offset plus length' cannot be greater than length of array. offset: '{0}', length: '{1}', array length: '{2}.";
 
         // Crypto Errors
         public const string IDX10621 = "IDX10621: '{0}' supports: '{1}' of types: '{2}' or '{3}'. SecurityKey received was of type '{4}'.";
