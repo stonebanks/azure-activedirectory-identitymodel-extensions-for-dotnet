@@ -6,7 +6,7 @@
   <PropertyGroup>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <DelaySign>false</DelaySign>
-    <DotNetCoreAppRuntimeVersion>2.2.3</DotNetCoreAppRuntimeVersion>
+    <DotNetCoreAppRuntimeVersion>2.1.20</DotNetCoreAppRuntimeVersion>
     <OutputTypeEx>library</OutputTypeEx>
     <Product>Microsoft IdentityModel</Product>
     <RepositoryType>git</RepositoryType>
@@ -19,7 +19,7 @@
     <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.2' ">$(DotNetCoreAppRuntimeVersion)</RuntimeFrameworkVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1.20' ">
     <DefineConstants>$(DefineConstants);NET_CORE</DefineConstants>
   </PropertyGroup>
 
