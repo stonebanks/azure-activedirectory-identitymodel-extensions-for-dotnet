@@ -56,7 +56,7 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         /// Gets the type of the <see cref="JsonWebToken"/>.
         /// </summary>
         /// <return>The type of <see cref="JsonWebToken"/></return>
-        public Type TokenType
+        public override Type TokenType
         {
             get { return typeof(JsonWebToken); }
         }
@@ -76,7 +76,7 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         /// <para>'false' if token.Length is greater than <see cref="TokenHandler.MaximumTokenSizeInBytes"/>.</para>
         /// <para>'true' if the token is in JSON compact serialization format.</para>
         /// </returns>
-        public virtual bool CanReadToken(string token)
+        public override bool CanReadToken(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
                 return false;
@@ -944,7 +944,7 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         /// <param name="token">A 'JSON Web Token' (JWT) in JWS or JWE Compact Serialization Format.</param>
         /// <param name="validationParameters">A <see cref="TokenValidationParameters"/>  required for validation.</param>
         /// <returns>A <see cref="TokenValidationResult"/></returns>
-        public virtual TokenValidationResult ValidateToken(string token, TokenValidationParameters validationParameters)
+        public override TokenValidationResult ValidateToken(string token, TokenValidationParameters validationParameters)
         {
             if (string.IsNullOrEmpty(token))
                 return new TokenValidationResult { Exception = LogHelper.LogArgumentNullException(nameof(token)), IsValid = false };

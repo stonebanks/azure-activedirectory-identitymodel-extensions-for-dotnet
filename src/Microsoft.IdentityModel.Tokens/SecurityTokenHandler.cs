@@ -85,30 +85,11 @@ namespace Microsoft.IdentityModel.Tokens
         }
 
         /// <summary>
-        /// This must be overridden to get the System.Type of the SecurityToken this instance handles.
-        /// </summary>
-        public abstract Type TokenType
-        {
-            get;
-        }
-
-        /// <summary>
         /// Indicates whether the <see cref="XmlReader"/> is positioned at an element that can be read.
         /// </summary>
         /// <param name="reader">An <see cref="XmlReader"/> reader positioned at a start element. The reader should not be advanced.</param>
         /// <returns>'true' if the token can be read.</returns>
         public virtual bool CanReadToken(XmlReader reader)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Indicates whether the current token string can be read as a token 
-        /// of the type handled by this instance.
-        /// </summary>
-        /// <param name="tokenString">The token string thats needs to be read.</param>
-        /// <returns>'True' if the ReadToken method can parse the token string.</returns>
-        public virtual bool CanReadToken(string tokenString)
         {
             return false;
         }
@@ -147,7 +128,7 @@ namespace Microsoft.IdentityModel.Tokens
         /// This must be overridden to serialize to XML a token of the type handled by this instance.
         /// </summary>
         /// <param name="writer">The XML writer.</param>
-        /// <param name="token">A token of type <see cref="TokenType"/>.</param>
+        /// <param name="token">A token of type <see cref="TokenHandler.TokenType"/>.</param>
         public abstract void WriteToken(XmlWriter writer, SecurityToken token);
 
         /// <summary>
@@ -161,9 +142,9 @@ namespace Microsoft.IdentityModel.Tokens
         /// <summary>
         /// This must be overridden to validate a token passed as a string using <see cref="TokenValidationParameters"/>
         /// </summary>
-        /// <param name="securityToken">A token of type <see cref="TokenType"/>.</param>
+        /// <param name="securityToken">A token of type <see cref="TokenHandler.TokenType"/>.</param>
         /// <param name="validationParameters">the current <see cref="TokenValidationParameters"/>.</param>
-        /// <param name="validatedToken">The token of type <see cref="TokenType"/> that was validated.</param>
+        /// <param name="validatedToken">The token of type <see cref="TokenHandler.TokenType"/> that was validated.</param>
         public virtual ClaimsPrincipal ValidateToken(string securityToken, TokenValidationParameters validationParameters, out SecurityToken validatedToken)
         {
             throw new NotImplementedException();

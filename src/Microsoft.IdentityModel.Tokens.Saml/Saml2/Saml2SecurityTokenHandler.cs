@@ -50,6 +50,17 @@ namespace Microsoft.IdentityModel.Tokens.Saml2
         private Saml2Serializer _serializer = new Saml2Serializer();
 
         /// <summary>
+        ///
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="tokenValidationParameters"></param>
+        /// <returns></returns>
+        public override TokenValidationResult ValidateToken(string token, TokenValidationParameters tokenValidationParameters)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
         /// Gets or set the <see cref="Saml2Serializer"/> that will be used to read and write a <see cref="Saml2SecurityToken"/>.
         /// </summary>
         /// <exception cref="ArgumentNullException">'value' is null.</exception>

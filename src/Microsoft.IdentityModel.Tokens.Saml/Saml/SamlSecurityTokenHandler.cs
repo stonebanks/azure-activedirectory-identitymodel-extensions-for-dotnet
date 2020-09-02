@@ -108,7 +108,19 @@ namespace Microsoft.IdentityModel.Tokens.Saml
 
         #endregion fields
 
-#region methods
+        #region methods
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="tokenValidationParameters"></param>
+        /// <returns></returns>
+        public override TokenValidationResult ValidateToken(string token, TokenValidationParameters tokenValidationParameters)
+        {
+            throw new NotSupportedException();
+        }
+
         /// <summary>
         /// Adds all Actors.
         /// </summary>

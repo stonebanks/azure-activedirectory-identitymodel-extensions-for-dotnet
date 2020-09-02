@@ -91,6 +91,17 @@ namespace System.IdentityModel.Tokens.Jwt
         };
 
         /// <summary>
+        ///
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="tokenValidationParameters"></param>
+        /// <returns></returns>
+        public override TokenValidationResult ValidateToken(string token, TokenValidationParameters tokenValidationParameters)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
         /// Static initializer for a new object. Static initializers run before the first instance of the type is created.
         /// </summary>
         static JwtSecurityTokenHandler()

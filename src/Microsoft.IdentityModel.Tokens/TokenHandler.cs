@@ -64,6 +64,30 @@ namespace Microsoft.IdentityModel.Tokens
         public bool SetDefaultTimesOnTokenCreation { get; set; } = true;
 
         /// <summary>
+        /// Indicates whether the current token string can be read as a token
+        /// of the type handled by this instance.
+        /// </summary>
+        /// <param name="tokenString">The token string thats needs to be read.</param>
+        /// <returns>'True' if the ReadToken method can parse the token string.</returns>
+        public virtual bool CanReadToken(string tokenString)
+        {
+            return false;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public abstract Type TokenType { get; }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="tokenValidationParameters"></param>
+        /// <returns></returns>
+        public abstract TokenValidationResult ValidateToken(string token, TokenValidationParameters tokenValidationParameters);
+
+        /// <summary>
         /// Gets or sets the token lifetime in minutes.
         /// </summary>
         /// <remarks>Used during token creation to set the default expiration ('exp'). </remarks>
