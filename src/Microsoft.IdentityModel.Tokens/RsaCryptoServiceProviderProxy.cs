@@ -259,5 +259,4 @@ namespace Microsoft.IdentityModel.Tokens
         }
     }
 }
-
 #endif

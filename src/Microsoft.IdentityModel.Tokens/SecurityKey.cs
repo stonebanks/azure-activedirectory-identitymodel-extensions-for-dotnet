@@ -135,7 +135,10 @@ namespace Microsoft.IdentityModel.Tokens
                 if (CanComputeJwkThumbprint())
                     return Base64UrlEncoder.Encode(ComputeJwkThumbprint());
                 else
+                    // should this be set to string.Empty?
+                    // return Guid.NewGuid().ToString();
                     return string.Empty;
+
             });
         }
     }
