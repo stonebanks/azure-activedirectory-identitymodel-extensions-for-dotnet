@@ -44,6 +44,11 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         public const string Acr = "acr";
 
         /// <summary>
+        /// https://tools.ietf.org/html/rfc8693#section-4.1
+        /// </summary>
+        public const string Act = "act";
+
+        /// <summary>
         /// http://openid.net/specs/openid-connect-core-1_0.html#IDToken
         /// </summary>
         public const string Amr = "amr";
@@ -117,6 +122,11 @@ namespace Microsoft.IdentityModel.JsonWebTokens
         /// http://tools.ietf.org/html/rfc7519#section-4
         /// </summary>
         public const string Jti = "jti";
+
+        /// <summary>
+        /// https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+        /// </summary>
+        public const string Name = "name";
 
         /// <summary>
         /// </summary>
