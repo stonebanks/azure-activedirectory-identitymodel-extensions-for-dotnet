@@ -208,6 +208,7 @@ namespace Microsoft.IdentityModel.Tokens
         public const string IDX10696 = "IDX10696: The algorithm '{0}' is not in the user-defined accepted list of algorithms.";
         public const string IDX10697 = "IDX10697: The user defined 'Delegate' AlgorithmValidator specified on TokenValidationParameters returned false when validating Algorithm: '{0}', SecurityKey: '{1}'.";
         public const string IDX10698 = "IDX10698: The SignatureProviderObjectPoolCacheSize must be greater than 0. Value: '{0}'.";
+        public const string IDX10699 = "IDX10699: Encryption using algorithm: '{0}' is not supported.";
 
         // security keys
         public const string IDX10700 = "IDX10700: {0} is unable to use 'rsaParameters'. {1} is null.";
@@ -223,6 +224,8 @@ namespace Microsoft.IdentityModel.Tokens
         public const string IDX10710 = "IDX10710: Computing a JWK thumbprint is supported only on SymmetricSecurityKey, JsonWebKey, RsaSecurityKey, X509SecurityKey, and ECDsaSecurityKey.";
         public const string IDX10711 = "IDX10711: Unable to Decrypt, Internal DecryptionFunction is not available.";
         public const string IDX10712 = "IDX10712: Unable to Encrypt, Internal EncryptionFunction is not available.";
+        public const string IDX10713 = "IDX10713: Encrytion/Decryption using algorithm '{0}' is only supported on Windows platform.";
+        public const string IDX10714 = "IDX10714: Unable to perform the decryption. There is a authentication tag mismatch.";
 
         // Json specific errors
         //public const string IDX10801 = "IDX10801:"
