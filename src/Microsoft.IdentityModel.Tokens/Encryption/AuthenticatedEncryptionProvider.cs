@@ -76,16 +76,19 @@ namespace Microsoft.IdentityModel.Tokens
             Algorithm = algorithm;
             _cryptoProviderFactory = key.CryptoProviderFactory;
 
-            if (SupportedAlgorithms.IsSupportedAesGcmEncryptionAlgorithm(algorithm, key))
+            if (SupportedAlgorithms.IsSupportedEncryptionAlgorithm(algorithm, key))
             {
+                if (SupportedAlgorithms.IsAesGcm(algorithm))
+                {
 #if NET_CORE
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     throw LogHelper.LogExceptionMessage(new PlatformNotSupportedException(LogHelper.FormatInvariant(LogMessages.IDX10713, algorithm)));
 #endif
-                InitializeUsingAesGcm();
+                    InitializeUsingAesGcm();
+                }
+                else
+                    InitializeUsingAesCbc();
             }
-            else if (SupportedAlgorithms.IsSupportedAuthenticatedEncryptionAlgorithm(algorithm, key))
-                InitializeUsingAesCbc();
             else
                 throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10668, GetType(), algorithm, key)));
         }
@@ -329,7 +332,7 @@ namespace Microsoft.IdentityModel.Tokens
         /// <returns>true if 'key, algorithm' pair is supported.</returns>
         protected virtual bool IsSupportedAlgorithm(SecurityKey key, string algorithm)
         {
-            return SupportedAlgorithms.IsSupportedAuthenticatedEncryptionAlgorithm(algorithm, key);
+            return SupportedAlgorithms.IsSupportedEncryptionAlgorithm(algorithm, key);
         }
 
         private AuthenticatedKeys GetAlgorithmParameters(SecurityKey key, string algorithm)
@@ -433,53 +436,23 @@ namespace Microsoft.IdentityModel.Tokens
             if (string.IsNullOrEmpty(algorithm))
                 throw LogHelper.LogArgumentNullException(nameof(algorithm));
 
-            if (SecurityAlgorithms.Aes128CbcHmacSha256.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 256)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes128CbcHmacSha256, 256, key.KeyId, key.KeySize)));
+            if (SecurityAlgorithms.Aes128CbcHmacSha256.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 256)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes128CbcHmacSha256, 256, key.KeyId, key.KeySize)));
 
-                return;
-            }
+            if (SecurityAlgorithms.Aes192CbcHmacSha384.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 384)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes192CbcHmacSha384, 384, key.KeyId, key.KeySize)));
 
-            if (SecurityAlgorithms.Aes192CbcHmacSha384.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 384)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes192CbcHmacSha384, 384, key.KeyId, key.KeySize)));
+            if (SecurityAlgorithms.Aes256CbcHmacSha512.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 512)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes256CbcHmacSha512, 512, key.KeyId, key.KeySize)));
 
-                return;
-            }
+            if (SecurityAlgorithms.Aes128Gcm.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 128)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes128Gcm, 128, key.KeyId, key.KeySize)));
 
-            if (SecurityAlgorithms.Aes256CbcHmacSha512.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 512)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes256CbcHmacSha512, 512, key.KeyId, key.KeySize)));
+            if (SecurityAlgorithms.Aes192Gcm.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 192)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes192Gcm, 192, key.KeyId, key.KeySize)));
 
-                return;
-            }
-
-            if (SecurityAlgorithms.Aes128Gcm.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 128)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes128Gcm, 128, key.KeyId, key.KeySize)));
-
-                return;
-            }
-
-            if (SecurityAlgorithms.Aes192Gcm.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 192)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes192Gcm, 192, key.KeyId, key.KeySize)));
-
-                return;
-            }
-
-            if (SecurityAlgorithms.Aes256Gcm.Equals(algorithm, StringComparison.Ordinal))
-            {
-                if (key.KeySize < 256)
-                    throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes256Gcm, 256, key.KeyId, key.KeySize)));
-
-                return;
-            }
+            if (SecurityAlgorithms.Aes256Gcm.Equals(algorithm, StringComparison.Ordinal) && key.KeySize < 256)
+                throw LogHelper.LogExceptionMessage(new ArgumentOutOfRangeException(nameof(key), LogHelper.FormatInvariant(LogMessages.IDX10653, SecurityAlgorithms.Aes256Gcm, 256, key.KeyId, key.KeySize)));
 
             throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10652, algorithm)));
         }
